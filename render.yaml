@@ -5,7 +5,7 @@ services:
   - type: web
     name: commentflow
     runtime: docker
-    plan: starter
+    plan: free
     healthCheckPath: /
     envVars:
       - key: DATABASE_URL
@@ -37,4 +37,4 @@ services:
 
 databases:
   - name: commentflow-db
-    plan: starter
+    plan: free
