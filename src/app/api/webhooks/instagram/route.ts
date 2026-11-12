@@ -159,7 +159,15 @@ export async function POST(req: NextRequest) {
       if (!qrPayload) {
         // texto livre: pode ser a resposta de uma coleta do construtor
         const texto = event.message?.text;
-        if (texto && event.sender?.id) tasks.push(receberTexto(event.sender.id, texto).catch((e) => console.error("receberTexto error", e)));
+        const igsid = event.sender?.id;
+        if (texto && igsid) {
+          // primeiro a coleta em aberto; se não havia, é uma mensagem nova no direct
+          tasks.push(
+            receberTexto(igsid, texto)
+              .then((usado) => (usado ? null : dispararPorMensagem("mensagem", { igsid, texto, chave: event.message?.mid ?? `${igsid}:${event.timestamp ?? ""}` })))
+              .catch((e) => console.error("mensagem no direct error", e)),
+          );
+        }
         continue;
       }
       tasks.push(
