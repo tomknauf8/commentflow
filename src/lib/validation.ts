@@ -37,7 +37,7 @@ export const dmFlowSchema = z
 
 const flowCampos = z.object({
   name: z.string().min(1, "Nome obrigatório"),
-  tipo: z.enum(["comentario", "live", "story_resposta", "story_mencao", "reacao"]).optional(),
+  tipo: z.enum(["comentario", "live", "story_resposta", "story_mencao", "reacao", "mensagem"]).optional(),
   enabled: z.boolean().optional(),
   scope: z.enum(["ALL_POSTS", "SPECIFIC_POST"]).optional(),
   mediaId: z.string().nullish(),

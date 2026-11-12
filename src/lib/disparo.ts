@@ -6,7 +6,7 @@ import { asDmFlow, buildStepMessage } from "@/lib/flowTypes";
 import { estaBloqueado, registrarEnvio } from "@/lib/conversas";
 import { iniciarExecucao } from "@/lib/motor";
 import { notificar } from "@/lib/notificacoes";
-import { GATILHOS, type TipoGatilho } from "@/lib/gatilhos";
+import { GATILHOS, podeAbordarNoDirect, type TipoGatilho } from "@/lib/gatilhos";
 import { temPalavra } from "@/lib/texto";
 
 /**
@@ -18,13 +18,17 @@ import { temPalavra } from "@/lib/texto";
 export async function dispararPorMensagem(tipo: Exclude<TipoGatilho, "comentario" | "live">, e: { igsid: string; texto: string; chave: string; username?: string | null }) {
   if (!e.igsid || (await estaBloqueado(e.igsid))) return { skipped: "blocked-or-empty" };
 
+  if (tipo === "mensagem" && !(await liberadoNoDirect(e.igsid))) return { skipped: "mensagem-recente-ou-em-atendimento" };
+
   const fluxos = await prisma.flow.findMany({ where: { enabled: true, tipo }, orderBy: { createdAt: "asc" } });
   const usaPalavra = GATILHOS[tipo].palavras !== "nenhuma";
-  const fluxo = fluxos.find((f) => !usaPalavra || f.matchType === "ANY" || temPalavra(e.texto, f.keywords));
+  // com palavra-chave tem prioridade sobre "qualquer mensagem"
+  const fluxo = fluxos.find((f) => usaPalavra && f.matchType !== "ANY" && temPalavra(e.texto, f.keywords))
+    ?? fluxos.find((f) => !usaPalavra || f.matchType === "ANY");
   if (!fluxo) return { matched: false };
 
   try {
-    await prisma.processedEvent.create({ data: { key: `gatilho:${tipo}:${e.chave}` } });
+    await prisma.processedEvent.create({ data: { key: tipo === "mensagem" ? `gatilho:mensagem:${e.igsid}:${e.chave}` : `gatilho:${tipo}:${e.chave}` } });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") return { skipped: "duplicate-event" };
     throw err;
@@ -56,4 +60,20 @@ export async function dispararPorMensagem(tipo: Exclude<TipoGatilho, "comentario
     });
   }
   return { matched: true, flowId: fluxo.id, ok };
+}
+
+/** Junta o que podeAbordarNoDirect precisa saber sobre a pessoa. */
+async function liberadoNoDirect(igsid: string): Promise<boolean> {
+  const contato = await prisma.contact.findUnique({ where: { igsid }, select: { id: true, status: true } });
+  const manual = contato
+    ? await prisma.message.findFirst({ where: { contactId: contato.id, direcao: "saida", origem: { in: ["humano", "instagram"] } }, orderBy: { createdAt: "desc" }, select: { createdAt: true } })
+    : null;
+  const ativa = await prisma.execucao.count({ where: { igsid, status: { in: ["andando", "aguardando", "espera", "coleta"] } } });
+  const ultimo = await prisma.processedEvent.findFirst({ where: { key: { startsWith: `gatilho:mensagem:${igsid}:` } }, orderBy: { createdAt: "desc" }, select: { createdAt: true } });
+  return podeAbordarNoDirect({
+    emAtendimento: contato?.status === "atendimento",
+    ultimaRespostaManual: manual?.createdAt ?? null,
+    execucaoAtiva: ativa > 0,
+    ultimoDisparo: ultimo?.createdAt ?? null,
+  });
 }

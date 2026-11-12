@@ -9,7 +9,7 @@ import type { DmFlow } from "@/lib/flowTypes";
  *                 respostas rápidas. A primeira mensagem sai como resposta
  *                 privada ao comentário; as seguintes, como direct normal
  *   atraso        espera N minutos e segue
- *   condicao      respondeu? clicou no link? tem a etiqueta? Ramos sim/não
+ *   condicao      respondeu? clicou no link? tem a etiqueta? segue você? Ramos sim/não
  *   randomizador  sorteia um ramo pelo peso (teste A/B)
  *   acao          põe ou tira uma etiqueta do contato
  *   coleta        pergunta e guarda a resposta (e-mail, telefone ou texto)
@@ -40,7 +40,7 @@ const NoMensagem = z.object({
   proximo: Proximo,
 });
 const NoAtraso = z.object({ id: Id, tipo: z.literal("atraso"), pos: Pos, minutos: z.number().int().min(1).max(60 * 24 * 14), proximo: Proximo });
-const NoCondicao = z.object({ id: Id, tipo: z.literal("condicao"), pos: Pos, teste: z.enum(["respondeu", "clicou", "tem_tag"]), tag: z.string().max(40).default(""), sim: Proximo, nao: Proximo });
+const NoCondicao = z.object({ id: Id, tipo: z.literal("condicao"), pos: Pos, teste: z.enum(["respondeu", "clicou", "tem_tag", "segue"]), tag: z.string().max(40).default(""), sim: Proximo, nao: Proximo });
 const NoRandomizador = z.object({
   id: Id, tipo: z.literal("randomizador"), pos: Pos,
   ramos: z.array(z.object({ rotulo: z.string().max(30).default(""), peso: z.number().int().min(1).max(100), proximo: Proximo })).min(2).max(5),

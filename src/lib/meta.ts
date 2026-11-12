@@ -171,6 +171,23 @@ export async function getMedia(creds: IgCredentials, mediaId: string): Promise<M
   }
 }
 
+/**
+ * A pessoa segue a conta? Campo is_user_follow_business da API de perfil do
+ * Instagram (vale para quem já interagiu no direct). Null quando a API não
+ * responde: quem chama decide (o motor deixa passar para não travar o lead).
+ */
+export async function segueConta(creds: IgCredentials, igsid: string): Promise<boolean | null> {
+  try {
+    const url = `${base()}/${igsid}?` + new URLSearchParams({ fields: "is_user_follow_business", access_token: creds.accessToken });
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const p = (await r.json()) as { is_user_follow_business?: boolean };
+    return typeof p.is_user_follow_business === "boolean" ? p.is_user_follow_business : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface Publicacao {
   id: string;
   legenda: string;

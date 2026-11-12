@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
 import { getActiveCredentials } from "@/lib/credentials";
-import { sendRaw, templateBotao, templateComBotoes, type BotaoTemplate, type GraphResult, type IgCredentials } from "@/lib/meta";
+import { segueConta, sendRaw, templateBotao, templateComBotoes, type BotaoTemplate, type GraphResult, type IgCredentials } from "@/lib/meta";
 import { asGrafo, type Grafo, type No, type NoDe } from "@/lib/grafo";
 import { registrarEnvio } from "@/lib/conversas";
 import { carregarConfigMeta } from "@/lib/configMeta";
@@ -121,7 +121,9 @@ function parar(id: string, status: string, erro?: string) {
 }
 
 // ------------------------------------------------------------ decisões
-async function testar(no: NoDe<"condicao">, exec: Exec): Promise<boolean> {
+async function testar(no: NoDe<"condicao">, exec: Exec, creds: IgCredentials): Promise<boolean> {
+  // sem resposta da API, segue pelo "sim": melhor entregar do que travar o lead
+  if (no.teste === "segue") return (await segueConta(creds, exec.igsid)) ?? true;
   if (no.teste === "respondeu") {
     const c = await prisma.contact.findUnique({ where: { igsid: exec.igsid }, select: { id: true } });
     if (!c) return false;
@@ -180,7 +182,7 @@ export async function andar(execId: string, desde: string | null): Promise<void>
         await prisma.execucao.update({ where: { id: exec.id }, data: { status: "espera", noAtual: no.proximo, proximaEm: new Date(Date.now() + no.minutos * 60_000) } });
         return;
       case "condicao":
-        atual = (await testar(no, exec)) ? no.sim : no.nao;
+        atual = (await testar(no, exec, creds)) ? no.sim : no.nao;
         break;
       case "randomizador":
         atual = sortear(no);
