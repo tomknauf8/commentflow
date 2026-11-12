@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight, AtSign, Flame, Gift, Hash, Heart, LayoutGrid, ListChecks, MessageCircle, MousePointerClick, Plus, Radio, Search, Send, ShoppingBag, SmilePlus, Sparkles,
-  Tag, Users, Video, X, Zap,
-} from "lucide-react";
+  Tag, Users, Video, X, Zap, Inbox } from "lucide-react";
 import { MODELOS, OBJETIVOS, linkDoModelo, type Modelo, type Objetivo } from "@/lib/modelos";
 import { GATILHOS, TIPOS, type TipoGatilho } from "@/lib/gatilhos";
 import { Card } from "../_ui/ui";
@@ -24,7 +23,7 @@ const ICONE_MODELO: Record<string, ReactNode> = {
   "mencao-no-story": <AtSign size={22} strokeWidth={1.8} />, "leads-pelos-stories": <Users size={22} strokeWidth={1.8} />, "comentario-na-live": <Radio size={22} strokeWidth={1.8} />, "reacao-no-direct": <SmilePlus size={22} strokeWidth={1.8} />,
 };
 const ICONE_TIPO: Record<TipoGatilho, ReactNode> = {
-  comentario: <MessageCircle size={17} strokeWidth={1.8} />, live: <Radio size={17} strokeWidth={1.8} />, story_resposta: <Send size={17} strokeWidth={1.8} />, story_mencao: <AtSign size={17} strokeWidth={1.8} />, reacao: <SmilePlus size={17} strokeWidth={1.8} />,
+  comentario: <MessageCircle size={17} strokeWidth={1.8} />, live: <Radio size={17} strokeWidth={1.8} />, story_resposta: <Send size={17} strokeWidth={1.8} />, story_mencao: <AtSign size={17} strokeWidth={1.8} />, reacao: <SmilePlus size={17} strokeWidth={1.8} />, mensagem: <Inbox size={17} strokeWidth={1.8} />,
 };
 const ICONE_OBJETIVO: Record<Objetivo, ReactNode> = {
   seguidores: <Users size={17} strokeWidth={1.8} />, engajar: <Heart size={17} strokeWidth={1.8} />, trafego: <MousePointerClick size={17} strokeWidth={1.8} />, vender: <ShoppingBag size={17} strokeWidth={1.8} />,
