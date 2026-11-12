@@ -393,7 +393,7 @@ function PainelGatilho({ g, onChange }: { g: Gatilho; onChange: (g: Gatilho) => 
       <Campo rotulo="Palavras-chave" dica="Uma por linha. Vale se o texto contiver a palavra.">
         {!g.qualquer && <textarea className="m-textarea" rows={3} value={g.palavras} onChange={(e) => onChange({ ...g, palavras: e.target.value })} placeholder={"quero\nlink"} />}
         <label className="flex items-center cursor-pointer" style={{ gap: 8, marginTop: 8, fontSize: 12.5 }}>
-          <input type="checkbox" checked={g.qualquer} onChange={(e) => onChange({ ...g, qualquer: e.target.checked })} style={{ accentColor: "var(--accent)" }} /> {g.tipo === "story_resposta" ? "Qualquer resposta" : "Qualquer comentário"}
+          <input type="checkbox" checked={g.qualquer} onChange={(e) => onChange({ ...g, qualquer: e.target.checked })} style={{ accentColor: "var(--accent)" }} /> {g.tipo === "story_resposta" ? "Qualquer resposta" : g.tipo === "mensagem" ? "Qualquer mensagem" : "Qualquer comentário"}
         </label>
       </Campo>
       )}
@@ -447,12 +447,14 @@ function PainelPasso({ no, inicio, outros, onChange, onInicio, onRemover, onFech
               <option value="clicou">Clicou no link?</option>
               <option value="respondeu">Respondeu no direct?</option>
               <option value="tem_tag">Tem a etiqueta…?</option>
+              <option value="segue">Segue você?</option>
             </select>
             {no.teste === "tem_tag" && <input className="m-input" style={{ marginTop: 8 }} value={no.tag} onChange={(e) => onChange({ ...no, tag: e.target.value })} placeholder="nome da etiqueta" maxLength={40} aria-label="etiqueta" />}
           </Campo>
           <Campo rotulo="Se sim"><VaiPara valor={no.sim} outros={outros} onChange={(v) => onChange({ ...no, sim: v })} rotulo="se sim" /></Campo>
           <Campo rotulo="Se não"><VaiPara valor={no.nao} outros={outros} onChange={(v) => onChange({ ...no, nao: v })} rotulo="se não" /></Campo>
           {no.teste === "clicou" && <div className="m-hint" style={{ marginTop: 10 }}>Conta os links que esta automação mandou. Ponha uma Espera antes, para dar tempo de a pessoa clicar.</div>}
+          {no.teste === "segue" && <div className="m-hint" style={{ marginTop: 10 }}>Pergunta ao Instagram se a pessoa segue a sua conta. Use depois de um botão como “Já te sigo”. Se o Instagram não responder, segue pelo “Se sim”.</div>}
         </>
       )}
       {no.tipo === "randomizador" && (

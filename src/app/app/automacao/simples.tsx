@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, AtSign, Check, ChevronLeft, ChevronRight, Hash, Heart, Instagram, Link2, Loader2, MessageCircle, Radio, Send, SmilePlus, Sparkles, Wand2, Workflow, X } from "lucide-react";
+import { ArrowRight, AtSign, Check, ChevronLeft, ChevronRight, Hash, Heart, Instagram, Link2, Loader2, MessageCircle, Radio, Send, SmilePlus, Sparkles, Wand2, Workflow, X, Inbox } from "lucide-react";
 import { GATILHOS, TIPOS, type TipoGatilho } from "@/lib/gatilhos";
 import { faltaNoPasso, nomeSugerido, payloadDoSimples, simplesEmBranco, type Simples } from "@/lib/modelos";
 import { Avatar, Pill, Toggle } from "../_ui/ui";
@@ -127,11 +127,11 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
               ) : (
               <div style={{ marginTop: 20 }}>
                 <div className="m-label" style={{ display: "flex", alignItems: "center", gap: 5 }}><Hash size={13} /> Palavras-chave</div>
-                <div className="m-hint" style={{ marginBottom: 8, marginTop: 0 }}>Quem {s.tipo === "story_resposta" ? "responder o story com" : "comentar"} uma delas entra na automação. Digite e aperte Enter. Vale se o texto contiver a palavra, sem diferenciar maiúsculas nem acentos.</div>
+                <div className="m-hint" style={{ marginBottom: 8, marginTop: 0 }}>Quem {s.tipo === "story_resposta" ? "responder o story com" : s.tipo === "mensagem" ? "mandar no direct" : "comentar"} uma delas entra na automação. Digite e aperte Enter. Vale se o texto contiver a palavra, sem diferenciar maiúsculas nem acentos.</div>
                 {!s.qualquer && <Palavras valor={s.palavras} onChange={(v) => mudar((x) => { x.palavras = v; })} />}
                 <label className="flex items-center cursor-pointer" style={{ gap: 8, marginTop: 10, fontSize: 13 }}>
                   <input type="checkbox" checked={s.qualquer} onChange={(e) => mudar((x) => { x.qualquer = e.target.checked; })} style={{ accentColor: "var(--accent)" }} />
-                  {s.tipo === "story_resposta" ? "Vale qualquer resposta ao story, mesmo sem palavra-chave" : "Responder qualquer comentário, mesmo sem palavra-chave"}
+                  {s.tipo === "story_resposta" ? "Vale qualquer resposta ao story, mesmo sem palavra-chave" : s.tipo === "mensagem" ? "Vale qualquer mensagem no direct (no máximo 1 vez por pessoa a cada 7 dias)" : "Responder qualquer comentário, mesmo sem palavra-chave"}
                 </label>
               </div>
               )}
@@ -250,7 +250,7 @@ export function AutomacaoSimples({ inicial, id, usuario }: { inicial: Simples; i
   );
 }
 
-const ICONE: Record<TipoGatilho, typeof MessageCircle> = { comentario: MessageCircle, live: Radio, story_resposta: Send, story_mencao: AtSign, reacao: SmilePlus };
+const ICONE: Record<TipoGatilho, typeof MessageCircle> = { comentario: MessageCircle, live: Radio, story_resposta: Send, story_mencao: AtSign, reacao: SmilePlus, mensagem: Inbox };
 
 function resumoGatilho(s: Simples) {
   const palavras = s.palavras.filter(Boolean).map((p) => `“${p}”`).join(" ou ") || "a palavra-chave";
@@ -260,6 +260,7 @@ function resumoGatilho(s: Simples) {
     case "story_resposta": return s.qualquer ? "responder um story seu" : `responder um story seu com ${palavras}`;
     case "story_mencao": return "marcar a sua conta num story";
     case "reacao": return "reagir a uma mensagem sua no direct";
+    case "mensagem": return s.qualquer ? "mandar uma mensagem no seu direct" : `mandar no seu direct uma mensagem com ${palavras}`;
   }
 }
 
@@ -322,7 +323,7 @@ function Telefone({ s, usuario }: { s: Simples; usuario: string | null }) {
   const palavra = s.qualquer ? "Amei! 😍" : s.palavras.filter(Boolean)[0] || "palavra-chave";
   const g = GATILHOS[s.tipo];
   const publica = g.publica ? s.publicas.filter((p) => p.trim())[0] : undefined;
-  const origem = s.tipo === "comentario" ? "NO COMENTÁRIO DO POST" : s.tipo === "live" ? "NO COMENTÁRIO DA LIVE" : s.tipo === "story_resposta" ? "RESPONDEU SEU STORY" : s.tipo === "story_mencao" ? "MENCIONOU VOCÊ NO STORY" : "REAGIU À SUA MENSAGEM";
+  const origem = s.tipo === "comentario" ? "NO COMENTÁRIO DO POST" : s.tipo === "live" ? "NO COMENTÁRIO DA LIVE" : s.tipo === "story_resposta" ? "RESPONDEU SEU STORY" : s.tipo === "story_mencao" ? "MENCIONOU VOCÊ NO STORY" : s.tipo === "mensagem" ? "MANDOU UMA MENSAGEM" : "REAGIU À SUA MENSAGEM";
   const fala = s.tipo === "story_mencao" ? "📸 marcou @você no story" : s.tipo === "reacao" ? "❤️ reagiu à sua mensagem" : palavra;
   return (
     <div className="m-simples-fone">
