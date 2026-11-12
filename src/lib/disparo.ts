@@ -68,7 +68,8 @@ async function liberadoNoDirect(igsid: string): Promise<boolean> {
   const manual = contato
     ? await prisma.message.findFirst({ where: { contactId: contato.id, direcao: "saida", origem: { in: ["humano", "instagram"] } }, orderBy: { createdAt: "desc" }, select: { createdAt: true } })
     : null;
-  const ativa = await prisma.execucao.count({ where: { igsid, status: { in: ["andando", "aguardando", "espera", "coleta"] } } });
+  // só conta automação mexida nas últimas 24 h (a janela da Meta): uma que ficou esperando um toque que nunca veio não bloqueia para sempre
+  const ativa = await prisma.execucao.count({ where: { igsid, status: { in: ["andando", "aguardando", "espera", "coleta"] }, updatedAt: { gt: new Date(Date.now() - 24 * 3_600_000) } } });
   const ultimo = await prisma.processedEvent.findFirst({ where: { key: { startsWith: `gatilho:mensagem:${igsid}:` } }, orderBy: { createdAt: "desc" }, select: { createdAt: true } });
   return podeAbordarNoDirect({
     emAtendimento: contato?.status === "atendimento",
