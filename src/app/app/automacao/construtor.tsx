@@ -32,7 +32,7 @@ const ID_GATILHO = "__gatilho";
 const TIPOS: { tipo: No["tipo"]; rotulo: string; sub: string; icone: typeof MessageSquare; cor: string }[] = [
   { tipo: "mensagem", rotulo: "Mensagem", sub: "Texto, imagem e botões", icone: MessageSquare, cor: "var(--accent)" },
   { tipo: "atraso", rotulo: "Espera", sub: "Aguarda e segue", icone: Clock, cor: "#f59e0b" },
-  { tipo: "condicao", rotulo: "Condição", sub: "Clicou? Respondeu?", icone: GitBranch, cor: "#0ea5e9" },
+  { tipo: "condicao", rotulo: "Condição", sub: "Clicou? Respondeu? Segue?", icone: GitBranch, cor: "#0ea5e9" },
   { tipo: "randomizador", rotulo: "Sorteio A/B", sub: "Divide por peso", icone: Shuffle, cor: "#ec4899" },
   { tipo: "acao", rotulo: "Etiqueta", sub: "Marca o contato", icone: Tag, cor: "#10b981" },
   { tipo: "coleta", rotulo: "Coletar dado", sub: "E-mail, telefone…", icone: ClipboardList, cor: "#6366f1" },
@@ -43,7 +43,7 @@ export function resumoCurto(n: No): string {
   switch (n.tipo) {
     case "mensagem": return n.texto.trim() ? n.texto.trim().slice(0, 60) : n.imagem_url ? "📷 Imagem" : "Mensagem vazia";
     case "atraso": return `Espera ${minutosLegivel(n.minutos)}`;
-    case "condicao": return n.teste === "clicou" ? "Clicou no link?" : n.teste === "respondeu" ? "Respondeu?" : `Tem a etiqueta “${n.tag || "…"}”?`;
+    case "condicao": return n.teste === "clicou" ? "Clicou no link?" : n.teste === "respondeu" ? "Respondeu?" : n.teste === "segue" ? "Segue você?" : `Tem a etiqueta “${n.tag || "…"}”?`;
     case "randomizador": return `Sorteio: ${n.ramos.map((r) => `${r.rotulo || "?"} ${r.peso}%`).join(" · ")}`;
     case "acao": return `${n.acao === "adicionar_tag" ? "Põe" : "Tira"} a etiqueta “${n.tag}”`;
     case "coleta": return `Pede ${n.campo === "email" ? "o e-mail" : n.campo === "telefone" ? "o telefone" : "uma resposta"}`;
