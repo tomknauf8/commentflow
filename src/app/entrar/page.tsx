@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function EntrarPage({ searchParams }: { searchParams: Promise<{ erro?: string; volta?: string }> }) {
+export default async function EntrarPage({ searchParams }: { searchParams: Promise<{ erro?: string; volta?: string; min?: string }> }) {
   const sp = await searchParams;
   const h = await headers();
   const temSenha = Boolean(senhaDoPainel());
@@ -36,7 +36,7 @@ export default async function EntrarPage({ searchParams }: { searchParams: Promi
             <input type="hidden" name="volta" value={volta} />
             <label className="m-label" htmlFor="senha" style={{ marginTop: 20 }}>Senha</label>
             <input id="senha" name="senha" type="password" className="m-input" autoComplete="current-password" autoFocus required />
-            {sp.erro && <div role="alert" style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: "var(--danger-text)" }}>Senha errada. Tente de novo.</div>}
+            {sp.erro && <div role="alert" style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: "var(--danger-text)" }}>{sp.erro === "bloqueado" ? `Muitas tentativas erradas. Por segurança, espere ${Number(sp.min) || 15} min e tente de novo.` : "Senha errada. Tente de novo."}</div>}
             <button type="submit" className="m-btn" style={{ width: "100%", marginTop: 18 }}><Lock size={16} /> Entrar</button>
             <div className="m-hint" style={{ textAlign: "center", marginTop: 14 }}>Esqueceu? A senha é o valor de <code>PAINEL_SENHA</code> no <code>.env</code> (ou nas variáveis da Render).</div>
           </form>
