@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GATILHOS, TIPOS, podeAbordarNoDirect } from "@/lib/gatilhos";
+import { GATILHOS, TIPOS, podeAbordarNoDirect, temConteudo } from "@/lib/gatilhos";
 import { GrafoSchema } from "@/lib/grafo";
 
 const agora = new Date("2026-11-12T12:00:00Z");
@@ -29,6 +29,28 @@ describe("gatilho mensagem no direct", () => {
   it("aborda a mesma pessoa no máximo uma vez a cada 7 dias", () => {
     expect(podeAbordarNoDirect({ ...livre, ultimoDisparo: horasAtras(6 * 24) }, agora)).toBe(false);
     expect(podeAbordarNoDirect({ ...livre, ultimoDisparo: horasAtras(7 * 24 + 1) }, agora)).toBe(true);
+  });
+});
+
+describe("qualquer mensagem só aborda contato novo com texto", () => {
+  const qualquer = { ...livre, qualquerMensagem: true, contatoConhecido: false, texto: "Oi, quero saber sobre contabilidade" };
+
+  it("aborda quem escreve pela primeira vez com texto", () => {
+    expect(podeAbordarNoDirect(qualquer, agora)).toBe(true);
+  });
+
+  it("não aborda amigo ou cliente que já conversava com você", () => {
+    expect(podeAbordarNoDirect({ ...qualquer, contatoConhecido: true }, agora)).toBe(false);
+  });
+
+  it("não aborda mensagem só de emoji ou pontuação", () => {
+    for (const t of ["👏", "😍😍", "!!", "  ", "❤️ 🙌"]) expect(podeAbordarNoDirect({ ...qualquer, texto: t }, agora)).toBe(false);
+    expect(temConteudo("ok 👍")).toBe(true);
+    expect(temConteudo("2027?")).toBe(true);
+  });
+
+  it("palavra-chave (ex.: PRONTA) vale também para quem já é contato", () => {
+    expect(podeAbordarNoDirect({ ...livre, qualquerMensagem: false, contatoConhecido: true, texto: "pronta" }, agora)).toBe(true);
   });
 });
 

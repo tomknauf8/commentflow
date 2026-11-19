@@ -42,21 +42,30 @@ export const tipoDe = (t: string | null | undefined): TipoGatilho => (t && (TIPO
 
 export const JANELA_MENSAGEM_DIAS = 7;
 
+/** Tem letra ou número? Mensagem só de emoji, pontuação ou espaço não conta como conversa. */
+export const temConteudo = (texto: string) => /[\p{L}\p{N}]/u.test(texto);
+
 /**
- * Regras anti-incômodo do gatilho "mensagem no direct" (módulo puro, testado):
- * não aborda quem está em atendimento, quem você respondeu à mão nas últimas
- * 24 h, quem está no meio de outra automação, nem quem já recebeu esta
- * abordagem nos últimos 7 dias.
+ * Regras anti-incômodo do gatilho "mensagem no direct" (módulo puro, testado).
+ * Sempre: não aborda quem está em atendimento, quem você respondeu à mão nas
+ * últimas 24 h, quem está no meio de outra automação, nem quem já recebeu esta
+ * abordagem nos últimos 7 dias. Na automação de "qualquer mensagem", além disso,
+ * só aborda quem escreve pela primeira vez (contato novo) e com texto de verdade:
+ * amigos, clientes e quem manda só um emoji ficam de fora.
  */
 export function podeAbordarNoDirect(s: {
   emAtendimento: boolean;
   ultimaRespostaManual: Date | null;
   execucaoAtiva: boolean;
   ultimoDisparo: Date | null;
+  qualquerMensagem?: boolean;
+  contatoConhecido?: boolean;
+  texto?: string;
 }, agora = new Date()): boolean {
   const horas = (d: Date) => (agora.getTime() - d.getTime()) / 3_600_000;
   if (s.emAtendimento || s.execucaoAtiva) return false;
   if (s.ultimaRespostaManual && horas(s.ultimaRespostaManual) < 24) return false;
   if (s.ultimoDisparo && horas(s.ultimoDisparo) < JANELA_MENSAGEM_DIAS * 24) return false;
+  if (s.qualquerMensagem && (s.contatoConhecido || !temConteudo(s.texto ?? ""))) return false;
   return true;
 }
